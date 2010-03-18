@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoSessionStore", "MongoDBSessionStore\MongoSessionStore.csproj", "{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SessionStoreTest", "SessionStoreTest\SessionStoreTest.csproj", "{BEF9F11E-FD05-4761-B772-A592CBCC5728}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoSessionTest", "MongoSessionTest\MongoSessionTest.csproj", "{883E3A81-A85D-4C7E-BC3A-D68738A951AF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEF9F11E-FD05-4761-B772-A592CBCC5728}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEF9F11E-FD05-4761-B772-A592CBCC5728}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEF9F11E-FD05-4761-B772-A592CBCC5728}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEF9F11E-FD05-4761-B772-A592CBCC5728}.Release|Any CPU.Build.0 = Release|Any CPU
+		{883E3A81-A85D-4C7E-BC3A-D68738A951AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{883E3A81-A85D-4C7E-BC3A-D68738A951AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{883E3A81-A85D-4C7E-BC3A-D68738A951AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{883E3A81-A85D-4C7E-BC3A-D68738A951AF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

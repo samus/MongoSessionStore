@@ -1,0 +1,10 @@
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoSessionTest\bin\MongoSessionTest.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoSessionTest\bin\MongoSessionTest.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoSessionTest\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoSessionTest\obj\Debug\MongoSessionTest.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoSessionTest\obj\Debug\MongoSessionTest.pdb
+C:\Users\Seth\Projects\MongoSessionStore\MongoSessionTest\bin\MongoSessionTest.dll
+C:\Users\Seth\Projects\MongoSessionStore\MongoSessionTest\bin\MongoSessionTest.pdb
+C:\Users\Seth\Projects\MongoSessionStore\MongoSessionTest\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Seth\Projects\MongoSessionStore\MongoSessionTest\obj\Debug\MongoSessionTest.dll
+C:\Users\Seth\Projects\MongoSessionStore\MongoSessionTest\obj\Debug\MongoSessionTest.pdb

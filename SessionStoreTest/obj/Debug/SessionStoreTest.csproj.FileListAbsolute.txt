@@ -1,0 +1,12 @@
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\SessionStoreTest.dll.config
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\SessionStoreTest.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\SessionStoreTest.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\MongoDB.Driver.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\nunit.framework.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\MongoDB.Driver.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\obj\Debug\SessionStoreTest.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\obj\Debug\SessionStoreTest.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\MongoDBSessionStore.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\SessionStoreTest\bin\Debug\MongoDBSessionStore.pdb
+C:\Users\Seth\Projects\MongoSessionStore\SessionStoreTest\obj\Debug\ResolveAssemblyReference.cache

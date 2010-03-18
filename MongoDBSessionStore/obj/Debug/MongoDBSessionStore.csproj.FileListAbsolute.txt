@@ -1,0 +1,7 @@
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\bin\Debug\MongoDBSessionStore.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\bin\Debug\MongoDBSessionStore.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\bin\Debug\MongoDB.Driver.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\bin\Debug\MongoDB.Driver.pdb
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\obj\Debug\MongoDBSessionStore.dll
+C:\Users\Seth\Documents\Visual Studio 2008\Projects\MytradeExperiment\MongoDBSessionStore\obj\Debug\MongoDBSessionStore.pdb
