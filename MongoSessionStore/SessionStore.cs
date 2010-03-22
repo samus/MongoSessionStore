@@ -98,6 +98,7 @@ namespace MongoSessionStore
             Document selector = new Document() { { "SessionId", session.SessionID }, { "ApplicationName", session.ApplicationName },{"LockId",session.LockID} };
             try
             {
+                conn.Open();
                 sessions.Delete(selector);
             }
             catch (MongoException ex)
@@ -115,6 +116,7 @@ namespace MongoSessionStore
             Document selector = new Document() {{"SessionId", id }, { "ApplicationName", applicationName }, { "LockId", lockId}};
             try
             {
+                conn.Open();
                 sessions.Delete(selector);
             }
             catch (MongoException ex)
@@ -133,6 +135,7 @@ namespace MongoSessionStore
             {"Expires",new Document(){{"$lt",DateTime.Now}} }};
             try
             {
+                conn.Open();
                 sessions.Delete(selector);
             }
             catch (MongoException ex)
@@ -148,16 +151,41 @@ namespace MongoSessionStore
         public static void LockSession(Session session)
         {
             Document selector = new Document() {{"SessionId", session.SessionID }, {"ApplicationName", session.ApplicationName}};
-            Document sessionLock = new Document() { { "$set", new Document() {{"LockDate", session.LockDate }, 
-            {"LockId", session.LockID }, {"Locked", session.Locked }, {"Flags",session.Flags} } } };
-            sessions.Update(sessionLock, selector, 0, false);
+            Document sessionLock = new Document() { { "$set", new Document() {{"LockDate", DateTime.Now }, 
+            {"LockId", session.LockID }, {"Locked", true }, {"Flags",0} } } };
+            try
+            {
+                conn.Open();
+                sessions.Update(sessionLock, selector, 0, false);
+            }
+            catch (MongoException ex)
+            {
+                throw new Exception("There was a problem when locking the session with SessionId:" + session.SessionID, ex);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         public static void ReleaseLock(string id, string applicationName, object lockId, double timeout)
         {
             Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName},{"LockId",lockId }};
             Document sessionLock = new Document() { { "$set", new Document() {{"Expires", DateTime.Now.AddMinutes(timeout)}, {"Locked", false }}}};
-            sessions.Update(sessionLock, selector, 0, false);
+
+            try
+            {
+                conn.Open();
+                sessions.Update(sessionLock, selector, 0, false);
+            }
+            catch (MongoException ex)
+            {
+                throw new Exception("There was a problem when releasing the lock for the session with SessionId:" + id, ex);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
     }
 }

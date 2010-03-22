@@ -79,6 +79,31 @@ namespace SessionStoreTest
         }
 
         [Test]
+        public void LockSessionAndReleaseLock()
+        {
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
+            OidGenerator oGen = new OidGenerator();
+            string id = oGen.Generate().ToString();
+            Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
+            SessionStore.Insert(session);
+            DateTime timestamp = DateTime.Now;
+            session.LockID = 1;
+            SessionStore.LockSession(session);
+            Session lockedSesssion = SessionStore.Get(id, this.ApplicationName);
+            Assert.AreEqual(true, lockedSesssion.Locked);
+            Assert.AreEqual(1,session.LockID);
+            Assert.AreNotEqual(session.LockDate,lockedSesssion.LockDate);
+            Assert.AreEqual(0, lockedSesssion.Flags);
+            SessionStore.ReleaseLock(lockedSesssion.SessionID, lockedSesssion.ApplicationName, lockedSesssion.LockID, item.Timeout);
+            Session unlockedSession = SessionStore.Get(id, this.ApplicationName);
+            Assert.AreEqual(false, unlockedSession.Locked);
+            Assert.AreEqual(lockedSesssion.LockDate, unlockedSession.LockDate);
+            Assert.AreNotEqual(lockedSesssion.Expires, unlockedSession.Expires);
+        }
+
+
+        [Test]
         public void DumpSessions()
         {
             conn.Open();
@@ -94,7 +119,7 @@ namespace SessionStoreTest
                 int sessionItemsCount = (int)session["SessionItemsCount"];
                 int timeout = (int)session["Timeout"];
                 bool locked = (bool)session["Locked"];
-                Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() +" |Timeout:"+ timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
+                Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() +" | Timeout:"+ timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
             }
             conn.Close();
         }
