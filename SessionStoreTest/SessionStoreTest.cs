@@ -50,31 +50,32 @@ namespace SessionStoreTest
 
         [Test]
         public void InsertNewSession()
-        {         
+        {
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
+            OidGenerator oGen = new OidGenerator();
+            string id = oGen.Generate().ToString();
+            Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
+            SessionStore.Insert(session);
+            Session storedSession = SessionStore.Get(id, this.ApplicationName);
+            Assert.AreEqual(session.SessionID, storedSession.SessionID);
+            Assert.AreEqual(session.ApplicationName, storedSession.ApplicationName);
+            Assert.AreEqual(session.SessionItems.Bytes.Length, storedSession.SessionItems.Bytes.Length);
+        }
 
-            try
-            {
-                string sessionItems = Serialize((SessionStateItemCollection)item.Items);
-                OidGenerator oGen = new OidGenerator();
-                string id = oGen.Generate().ToString();
-                Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
-                SessionStore.Insert(session);
-                //Session storedSession = SessionStore.Get(id, this.ApplicationName);
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message + " " + ex.InnerException.Message);
-            }
-
-            //Session storedSession = SessionStore.Get(id, this.ApplicationName);
-            //if (storedSession == null)
-            //{
-            //    Console.WriteLine("It's null");
-            //}
-            //Assert.AreEqual(session.SessionID, storedSession.SessionID);
-            //Assert.AreEqual(session.ApplicationName, storedSession.ApplicationName);
-            //Assert.AreEqual(session.Created, storedSession.Created);
+        [Test]
+        public void UpdateSession()
+        {
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
+            OidGenerator oGen = new OidGenerator();
+            string id = oGen.Generate().ToString();
+            Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
+            SessionStore.Insert(session);
+            SessionStore.UpdateSession(id, 5, new Binary(serializedItems), this.ApplicationName, 3, 0);
+            Session updatedSession = SessionStore.Get(id, this.ApplicationName);
+            Assert.AreEqual(5, updatedSession.Timeout);
+            Assert.AreEqual(3, updatedSession.SessionItemsCount);
         }
 
         [Test]
@@ -91,26 +92,27 @@ namespace SessionStoreTest
                 expires = expires.ToLocalTime();
                 string applicationName = (string)session["ApplicationName"];
                 int sessionItemsCount = (int)session["SessionItemsCount"];
+                int timeout = (int)session["Timeout"];
                 bool locked = (bool)session["Locked"];
-                Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
+                Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() +" |Timeout:"+ timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
             }
             conn.Close();
         }
 
-        private string Serialize(SessionStateItemCollection items)
+        private byte[] Serialize(SessionStateItemCollection items)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(ms);
             if (items != null)
                 items.Serialize(writer);
             writer.Close();
-            return Convert.ToBase64String(ms.ToArray());
+            return ms.ToArray();
         }
 
 
-        private SessionStateItemCollection Deserialize(string serializedItems, int timeout)
+        private SessionStateItemCollection Deserialize(byte[] serializedItems, int timeout)
         {
-            MemoryStream ms = new MemoryStream(Convert.FromBase64String(serializedItems));
+            MemoryStream ms = new MemoryStream(serializedItems);
             SessionStateItemCollection sessionItems = new SessionStateItemCollection();
 
             if (ms.Length > 0)

@@ -18,7 +18,7 @@ namespace MongoSessionStore
         private object _lockID;
         private int _timeout;
         private bool _locked;
-        private string _sessionItems;
+        private Binary _sessionItems;
         private int _sessionItemsCount;
         private int _flags;
 
@@ -27,7 +27,7 @@ namespace MongoSessionStore
 
         public Session() { }
 
-        public Session(string id, string applicationName, int timeout, string sessionItems, int sessionItemsCount,SessionStateActions actionFlags )
+        public Session(string id, string applicationName, int timeout, Binary sessionItems, int sessionItemsCount,SessionStateActions actionFlags )
         {
             this._sessionID = id;
             this._applicationName = applicationName;
@@ -51,7 +51,7 @@ namespace MongoSessionStore
             this._lockID = (int)document["LockId"];
             this._timeout = (int)document["Timeout"];
             this._locked = (bool)document["Locked"];
-            this._sessionItems = (string)document["SessionItems"];
+            this._sessionItems = (Binary)document["SessionItems"];
             this._sessionItemsCount = (int)document["SessionItemsCount"];
             this._flags = (int)document["Flags"];
             this._created = (DateTime)document["Created"];
@@ -109,7 +109,7 @@ namespace MongoSessionStore
             set { this._locked = value; }
         }
 
-        public string SessionItems
+        public Binary SessionItems
         {
             get { return this._sessionItems; }
             set { this._sessionItems = value; }

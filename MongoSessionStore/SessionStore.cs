@@ -67,15 +67,15 @@ namespace MongoSessionStore
             return session;            
         }
 
-        public static void UpdateSession(string id, int timeout, string sessionItems, string applicationName, int sessionItemsCount, object lockId)
+        public static void UpdateSession(string id, int timeout, Binary sessionItems, string applicationName, int sessionItemsCount, object lockId)
         {
             try
             {
 
-                Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName } };
-                Document session = new Document() { { "$set", new Document() { { "LockDate", DateTime.Now.AddMinutes((double)timeout) }, { "LockId", lockId }, { "Locked", true } } } };
+                Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName },{"LockId",lockId} };
+                Document session = new Document() { { "$set", new Document() { { "LockDate", DateTime.Now.AddMinutes((double)timeout) },{"Timeout",timeout},{ "SessionItems", sessionItems },{"SessionItemsCount",sessionItemsCount}} } };
                 conn.Open();
-                sessions.Update(session);
+                sessions.Update(session, selector, 0, false);
             }
             catch (MongoException ex)
             {

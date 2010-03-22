@@ -69,13 +69,14 @@ namespace MongoSessionStore
         }
 
         public override bool SetItemExpireCallback(SessionStateItemExpireCallback expireCallback)
-        {
+        {            
             return false;
         }
 
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item, object lockId, bool newItem)
         {
-            string sessionItems = Serialize((SessionStateItemCollection)item.Items);
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
 
             try
             {
@@ -150,7 +151,7 @@ namespace MongoSessionStore
             actionFlags = 0;
 
             // String to hold serialized SessionStateItemCollection.
-            string serializedItems = "";
+            byte[] serializedItems = new byte[0];
             // Timeout value from the data store.
             int timeout = 0;
 
@@ -218,7 +219,7 @@ namespace MongoSessionStore
         // be stored in an Access Memo field.
         //
 
-        private string Serialize(SessionStateItemCollection items)
+        private byte[] Serialize(SessionStateItemCollection items)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(ms);
@@ -228,7 +229,7 @@ namespace MongoSessionStore
 
             writer.Close();
 
-            return Convert.ToBase64String(ms.ToArray());
+            return ms.ToArray();
         }
 
         //
@@ -237,10 +238,10 @@ namespace MongoSessionStore
         // SessionStateItemCollection.
         //
 
-        private SessionStateStoreData Deserialize(HttpContext context, string serializedItems, int timeout)
+        private SessionStateStoreData Deserialize(HttpContext context, byte[] serializedItems, int timeout)
         {
             MemoryStream ms =
-              new MemoryStream(Convert.FromBase64String(serializedItems));
+              new MemoryStream(serializedItems);
 
             SessionStateItemCollection sessionItems =
               new SessionStateItemCollection();
@@ -303,7 +304,9 @@ namespace MongoSessionStore
 
         public override void CreateUninitializedItem(HttpContext context,string id,int timeout)
         {
-            Session session = new Session(id,this._applicationName, timeout, String.Empty, 0, SessionStateActions.InitializeItem);
+            byte[] serializedItems = new byte[0];
+            Binary sessionItems = new Binary(serializedItems);
+            Session session = new Session(id,this._applicationName, timeout, sessionItems, 0, SessionStateActions.InitializeItem);
 
             try
             {
@@ -330,7 +333,7 @@ namespace MongoSessionStore
         {
             try
             {
-                SessionStore.UpdateSessionExpiration(id, DateTime.Now.AddMinutes(sessionStateSection.Timeout.TotalMinutes));
+                SessionStore.UpdateSessionExpiration(id,this._applicationName, sessionStateSection.Timeout.TotalMinutes);
             }
             catch (Exception e)
             {

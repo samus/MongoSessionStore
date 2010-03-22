@@ -63,7 +63,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MongoDBSessionStore\MongoSessionStore.csproj">
+    <ProjectReference Include="..\MongoSessionStore\MongoSessionStore.csproj">
       <Project>{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}</Project>
       <Name>MongoSessionStore</Name>
     </ProjectReference>
