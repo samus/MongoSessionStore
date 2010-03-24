@@ -11,11 +11,14 @@ namespace MongoSessionTest
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            System.Web.SessionState.SessionIDManager manager = new System.Web.SessionState.SessionIDManager();
-    
-            string sessionID = manager.CreateSessionID(HttpContext.Current);
-            Response.Write(sessionID);
+         
+        }
 
+        protected void Button1_Click(object sender, EventArgs e)
+        {
+            string s = TextBox1.Text;
+            Session.Add("S1", s);
+            Response.Redirect("RedirectedPage.aspx");
         }
     }
 }

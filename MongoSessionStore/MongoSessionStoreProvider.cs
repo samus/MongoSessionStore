@@ -150,7 +150,7 @@ namespace MongoSessionStore
             locked = false;
             actionFlags = 0;
 
-            // String to hold serialized SessionStateItemCollection.
+            // byte array to hold serialized SessionStateItemCollection.
             byte[] serializedItems = new byte[0];
             // Timeout value from the data store.
             int timeout = 0;
@@ -196,7 +196,7 @@ namespace MongoSessionStore
                     if (actionFlags == SessionStateActions.InitializeItem)
                         item = CreateNewStoreData(context, sessionStateSection.Timeout.Minutes);
                     else
-                        item = Deserialize(context, serializedItems, timeout);
+                        item = Deserialize(context, session.SessionItems.Bytes, session.Timeout);
                 }            
                           
             }
@@ -215,8 +215,7 @@ namespace MongoSessionStore
 
         //
         // Serialize is called by the SetAndReleaseItemExclusive method to 
-        // convert the SessionStateItemCollection into a Base64 string to    
-        // be stored in an Access Memo field.
+        // convert the SessionStateItemCollection into a Binary.
         //
 
         private byte[] Serialize(SessionStateItemCollection items)
@@ -234,7 +233,7 @@ namespace MongoSessionStore
 
         //
         // DeSerialize is called by the GetSessionStoreItem method to 
-        // convert the Base64 string stored in the Access Memo field to a 
+        // convert the Binary to a 
         // SessionStateItemCollection.
         //
 

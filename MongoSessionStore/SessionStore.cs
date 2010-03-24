@@ -49,12 +49,15 @@ namespace MongoSessionStore
             {
                 conn.Open();
                 Document sessionDoc  = sessions.FindOne(selector);
-                session = new Session(sessionDoc);
-
-                if (session == null)
+                if (sessionDoc == null)
                 {
-                    throw new Exception("The session was not found. SessionID: + " + id);
+                    session = null;
                 }
+                else
+                {
+                    session = new Session(sessionDoc);
+                }
+               
             }
             catch (MongoException ex)
             {
@@ -73,7 +76,7 @@ namespace MongoSessionStore
             {
 
                 Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName },{"LockId",lockId} };
-                Document session = new Document() { { "$set", new Document() { { "LockDate", DateTime.Now.AddMinutes((double)timeout) },{"Timeout",timeout},{ "SessionItems", sessionItems },{"SessionItemsCount",sessionItemsCount}} } };
+                Document session = new Document() { { "$set", new Document() { { "LockDate", DateTime.Now.AddMinutes((double)timeout) },{"Timeout",timeout},{"Locked",false},{ "SessionItems", sessionItems },{"SessionItemsCount",sessionItemsCount}} } };
                 conn.Open();
                 sessions.Update(session, selector, 0, false);
             }
