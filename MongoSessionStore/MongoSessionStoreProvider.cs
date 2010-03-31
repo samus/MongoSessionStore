@@ -222,12 +222,26 @@ namespace MongoSessionStore
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(ms);
+            try
+            {
+                if (items != null)
+                    items.Serialize(writer);
+            }
+            catch (Exception e)
+            {
+                if (WriteExceptionsToEventLog)
+                {
+                    WriteToEventLog(e, "GetSessionStoreItem");
+                    throw new ProviderException(e.Message, e.InnerException);
+                }
+                else
+                    throw e;
 
-            if (items != null)
-                items.Serialize(writer);
-
-            writer.Close();
-
+            }
+            finally
+            {
+                writer.Close();
+            }
             return ms.ToArray();
         }
 

@@ -40,6 +40,10 @@ namespace SessionStoreTest
             item = new SessionStateStoreData(sessionItemsCollection, staticObjectsCollection, 1);
         }
 
+
+        /// <summary>
+        /// Not a real TearDown(). Sometimes it helps to leave the sessions in the database to be dumped and analyzed. 
+        /// </summary>
         [Test]
         public void TearDown()
         {
@@ -100,6 +104,47 @@ namespace SessionStoreTest
             Assert.AreEqual(false, unlockedSession.Locked);
             Assert.AreEqual(lockedSesssion.LockDate, unlockedSession.LockDate);
             Assert.AreNotEqual(lockedSesssion.Expires, unlockedSession.Expires);
+        }
+
+        [Test]
+        public void InsertNewSessionAndEvictHard()
+        {
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
+            OidGenerator oGen = new OidGenerator();
+            string id = oGen.Generate().ToString();
+            Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
+            SessionStore.Insert(session);
+            SessionStore.EvictSession(session);
+            Session storedSession = SessionStore.Get(id, this.ApplicationName);
+            Assert.IsNull(storedSession); 
+        }
+
+        [Test]
+        public void AddExpiredSessionAndEvictSoft()
+        {
+            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+            Binary sessionItems = new Binary(serializedItems);
+            OidGenerator oGen = new OidGenerator();
+            string id = oGen.Generate().ToString();
+            Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
+            session.Expires = DateTime.Now.Subtract(new TimeSpan(0,2,0));
+            SessionStore.Insert(session);
+            SessionStore.EvictExpiredSession(session.SessionID,session.ApplicationName);
+            Session storedSession = SessionStore.Get(session.SessionID, session.ApplicationName);
+            Assert.IsNull(storedSession);
+        }
+
+        public void TestSerializeAndDeserialize()
+        {
+            SessionStateItemCollection items = new SessionStateItemCollection();
+            items["S1"] = "Test1";
+            items["S2"] = "Test2";
+
+            byte[] serializedItems = Serialize(items);
+            SessionStateItemCollection items2 = Deserialize(serializedItems, 1);
+            Assert.AreEqual("Test1", items["S1"]);
+            Assert.AreEqual("Test2", items["S2"]);
         }
 
 
