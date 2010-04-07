@@ -10,6 +10,7 @@ using System.Web.SessionState;
 using System.Text;
 using NUnit.Framework;
 using MongoDB.Driver;
+using MongoDB.Driver.Serialization;
 using MongoDB.Driver.Connections;
 using MongoDB.Driver.Configuration;
 
@@ -19,7 +20,7 @@ namespace SessionStoreTest
     public class SessionOpsTest
     {
         Connection conn;
-        Database db;
+        MongoDatabase db;
         IMongoCollection sessions;
         string ApplicationName = "TestApp";
         SessionStateStoreData item;
@@ -30,7 +31,8 @@ namespace SessionStoreTest
         {
             MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
             conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new Database(conn, "SessionTest");
+
+            db = new MongoDatabase(SerializationFactory.Default, conn, "SessionTest");
             sessions = db.GetCollection("sessions");
 
             SessionStateItemCollection sessionItems = new SessionStateItemCollection();
@@ -114,7 +116,7 @@ namespace SessionStoreTest
             {"SessionItems",sessionItems},{"SessionItemsCount",item.Items.Count},{"Flags",0}};
          
             Document selector = new Document(){{"SessionId",sessionID}};
-            sessions.Update(session,selector,1,false);
+            sessions.Update(session,selector,0,false);
             
 
             //Document updatedSession = sessions.FindOne(session);

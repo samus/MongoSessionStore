@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Configuration;
 using MongoDB.Driver;
+using MongoDB.Driver.Serialization;
 using MongoDB.Driver.Connections;
 using MongoDB.Driver.Configuration;
 using NDesk.Options;
@@ -12,7 +13,7 @@ namespace MongoStoreInspector
     class Program
     {
         private static Connection conn;
-        private static Database db;
+        private static MongoDatabase db;
         private static IMongoCollection sessions;
 
         static void Main(string[] args)
@@ -39,7 +40,7 @@ namespace MongoStoreInspector
         {
             MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
             conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new Database(conn, "SessionTest");
+            db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
             try
             {
                 conn.Open();
@@ -78,7 +79,7 @@ namespace MongoStoreInspector
         {
             MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
             conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new Database(conn, "SessionTest");
+            db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
             try
             {
                 conn.Open();
@@ -102,7 +103,7 @@ namespace MongoStoreInspector
         {
              MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
             conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new Database(conn, "SessionTest");
+            db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
             try
             {
                 conn.Open();

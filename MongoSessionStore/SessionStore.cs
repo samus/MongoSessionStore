@@ -4,6 +4,7 @@ using System.Configuration;
 using MongoDB.Driver;
 using MongoDB.Driver.Configuration;
 using MongoDB.Driver.Connections;
+using MongoDB.Driver.Serialization;
 using System.Text;
 
 namespace MongoSessionStore
@@ -13,7 +14,7 @@ namespace MongoSessionStore
 
         static MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
         static Connection conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-        static Database db = new Database(conn, "SessionTest");
+        static MongoDatabase db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
         static IMongoCollection sessions = db.GetCollection("sessions");
 
         public SessionStore()
@@ -76,7 +77,7 @@ namespace MongoSessionStore
             {
 
                 Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName },{"LockId",lockId} };
-                Document session = new Document() { { "$set", new Document() { { "LockDate", DateTime.Now.AddMinutes((double)timeout) },{"Timeout",timeout},{"Locked",false},{ "SessionItems", sessionItems },{"SessionItemsCount",sessionItemsCount}} } };
+                Document session = new Document() { { "$set", new Document() { { "Expires", DateTime.Now.AddMinutes((double)timeout) },{"Timeout",timeout},{"Locked",false},{ "SessionItems", sessionItems },{"SessionItemsCount",sessionItemsCount}}} };
                 conn.Open();
                 sessions.Update(session, selector, 0, false);
             }
@@ -92,8 +93,21 @@ namespace MongoSessionStore
 
         public static void UpdateSessionExpiration(string id, string applicationName, double timeout)
         {
-             Document selector = new Document() { { "SessionId", id}, { "ApplicationName", applicationName} };
-            Document sessionUpdate = new Document() { { "$set", new Document() { { "Expires", DateTime.Now.AddMinutes(timeout)} }}};
+            try
+            {
+                Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName } };
+                Document sessionUpdate = new Document() { { "$set", new Document() { { "Expires", DateTime.Now.AddMinutes(timeout) } } } };
+                conn.Open();
+                sessions.Update(sessionUpdate, selector, 0, false);
+            }
+            catch (MongoException ex)
+            {
+                throw new Exception("Could not update Session Expiration", ex);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         public static void EvictSession(Session session)

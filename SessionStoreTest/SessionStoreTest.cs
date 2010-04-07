@@ -9,6 +9,7 @@ using System.Configuration.Provider;
 using System.Text;
 using NUnit.Framework;
 using MongoDB.Driver;
+using MongoDB.Driver.Serialization;
 using MongoDB.Driver.Configuration;
 using MongoDB.Driver.Connections;
 using MongoSessionStore;
@@ -20,7 +21,7 @@ namespace SessionStoreTest
     public class SessionStoreTest
     {
         Connection conn;
-        Database db;
+        MongoDatabase db;
         IMongoCollection sessions;
         string ApplicationName = "TestApp";
         int Timeout = 2;
@@ -32,7 +33,7 @@ namespace SessionStoreTest
         {
             MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
             conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new Database(conn, "SessionTest");
+            db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
             sessions = db.GetCollection("sessions");
 
             SessionStateItemCollection sessionItemsCollection = new SessionStateItemCollection();
@@ -48,7 +49,7 @@ namespace SessionStoreTest
         public void TearDown()
         {
             conn.Open();
-            db["$cmd"].FindOne(new Document().Append("drop", "sessions"));
+            db["$cmd"].FindOne(new Document().Add("drop", "sessions"));
             conn.Close();
         }
 
@@ -80,6 +81,7 @@ namespace SessionStoreTest
             Session updatedSession = SessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(5, updatedSession.Timeout);
             Assert.AreEqual(3, updatedSession.SessionItemsCount);
+            Assert.AreEqual(DateTime.Now.AddMinutes(5).Minute, updatedSession.Expires.Minute);
         }
 
         [Test]
@@ -167,6 +169,18 @@ namespace SessionStoreTest
                 Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() +" | Timeout:"+ timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
             }
             conn.Close();
+        }
+
+        [Test]
+        public void ShowStats()
+        {
+            conn.Open();
+
+            long i = sessions.Count();
+            Console.WriteLine(i.ToString());
+           
+            conn.Close();
+
         }
 
         private byte[] Serialize(SessionStateItemCollection items)

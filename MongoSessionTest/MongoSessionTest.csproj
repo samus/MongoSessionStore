@@ -54,9 +54,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Default.aspx" />
+    <Content Include="RedirectedPage.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Code\MockUser.cs" />
+    <Content Include="LoadTestOne.aspx" />
+    <Content Include="LoadTestTwo.aspx" />
+    <Content Include="Test.aspx" />
     <Compile Include="Default.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>
       <DependentUpon>Default.aspx</DependentUpon>
@@ -64,7 +69,41 @@
     <Compile Include="Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
     </Compile>
+    <Compile Include="LoadTestOne.aspx.cs">
+      <DependentUpon>LoadTestOne.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LoadTestOne.aspx.designer.cs">
+      <DependentUpon>LoadTestOne.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LoadTestTwo.aspx.cs">
+      <DependentUpon>LoadTestTwo.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LoadTestTwo.aspx.designer.cs">
+      <DependentUpon>LoadTestTwo.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RedirectedPage.aspx.cs">
+      <DependentUpon>RedirectedPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="RedirectedPage.aspx.designer.cs">
+      <DependentUpon>RedirectedPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Test.aspx.cs">
+      <DependentUpon>Test.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Test.aspx.designer.cs">
+      <DependentUpon>Test.aspx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MongoSessionStore\MongoSessionStore.csproj">
+      <Project>{354D379B-E16C-40DE-B26F-8CCF2EDE94D8}</Project>
+      <Name>MongoSessionStore</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

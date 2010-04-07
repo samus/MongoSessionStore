@@ -75,11 +75,12 @@ namespace MongoSessionStore
 
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item, object lockId, bool newItem)
         {
-            byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
-            Binary sessionItems = new Binary(serializedItems);
-
-            try
+           try
             {
+
+                byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
+                Binary sessionItems = new Binary(serializedItems);
+
                 if (newItem)
                 {
                     // Delete an existing expired session if it exists.
