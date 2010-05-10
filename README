@@ -2,9 +2,11 @@ Mongo Session Store for ASP.NET
 ===============================
 A session state store provider for ASP.NET that store sessions in MongoDB.
 
+This is still early stages and is constantly changing with the C# driver
+
 Included Projects
 =================
 Mongo Session Store - The session store provider class required
-Mongo Store Inspector - Console application 
+Mongo Store Inspector - Command line application for viewing existing sessions
 MongoSessionTest-  A test ASP.Net Web application configured to use MongoSessionStore
 SessionStoreTest- Basic session store tests
