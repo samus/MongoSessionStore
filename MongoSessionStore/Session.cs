@@ -3,8 +3,8 @@ using System.Configuration;
 using System.Collections.Generic;
 using System.Web.SessionState;
 using System.Text;
-using MongoDB.Driver;
-using MongoDB.Driver.Configuration;
+using MongoDB;
+using MongoDB.Configuration;
 
 namespace MongoSessionStore
 {
@@ -23,7 +23,7 @@ namespace MongoSessionStore
         private int _flags;
 
       
-        private OidGenerator oGen;
+        //private OidGenerator oGen;
 
         public Session() { }
 

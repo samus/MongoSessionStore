@@ -8,10 +8,9 @@ using System.Web.Configuration;
 using System.Configuration.Provider;
 using System.Text;
 using NUnit.Framework;
-using MongoDB.Driver;
-using MongoDB.Driver.Serialization;
-using MongoDB.Driver.Configuration;
-using MongoDB.Driver.Connections;
+using MongoDB;
+using MongoDB.Configuration;
+using MongoDB.Connections;
 using MongoSessionStore;
 
 
@@ -20,22 +19,18 @@ namespace SessionStoreTest
     [TestFixture]
     public class SessionStoreTest
     {
-        Connection conn;
-        MongoDatabase db;
-        IMongoCollection sessions;
+   
         string ApplicationName = "TestApp";
         int Timeout = 2;
         SessionStateStoreData item;
-        string sessionID;
+        MongoConfiguration config;
 
         [SetUp]
         public void SetUp()
         {
-            MongoConfiguration config = (MongoConfiguration)System.Configuration.ConfigurationManager.GetSection("Mongo");
-            conn = ConnectionFactory.GetConnection(config.Connections["mongoserver"].ConnectionString);
-            db = new MongoDatabase(SerializationFactory.Default,conn, "SessionTest");
-            sessions = db.GetCollection("sessions");
-
+            var configure = new MongoConfigurationBuilder();
+            configure.ConnectionStringAppSettingKey("mongoserver");
+            config = configure.BuildConfiguration();
             SessionStateItemCollection sessionItemsCollection = new SessionStateItemCollection();
             HttpStaticObjectsCollection staticObjectsCollection = new HttpStaticObjectsCollection();
             item = new SessionStateStoreData(sessionItemsCollection, staticObjectsCollection, 1);
@@ -48,20 +43,21 @@ namespace SessionStoreTest
         [Test]
         public void TearDown()
         {
-            conn.Open();
-            db["$cmd"].FindOne(new Document().Add("drop", "sessions"));
-            conn.Close();
+            using (var mongo = new Mongo(config))
+            {
+                mongo["session_store"]["$cmd"].FindOne(new Document().Add("drop", "sessions"));
+            }
         }
 
         [Test]
         public void InsertNewSession()
         {
+            var sessionStore = SessionStore.Instance;
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
-            OidGenerator oGen = new OidGenerator();
-            string id = oGen.Generate().ToString();
+            string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
-            SessionStore.Insert(session);
+            sessionStore.Insert(session);
             Session storedSession = SessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(session.SessionID, storedSession.SessionID);
             Assert.AreEqual(session.ApplicationName, storedSession.ApplicationName);
@@ -73,10 +69,9 @@ namespace SessionStoreTest
         {
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
-            OidGenerator oGen = new OidGenerator();
-            string id = oGen.Generate().ToString();
+            string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
-            SessionStore.Insert(session);
+            SessionStore.Instance.Insert(session);
             SessionStore.UpdateSession(id, 5, new Binary(serializedItems), this.ApplicationName, 3, 0);
             Session updatedSession = SessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(5, updatedSession.Timeout);
@@ -89,10 +84,9 @@ namespace SessionStoreTest
         {
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
-            OidGenerator oGen = new OidGenerator();
-            string id = oGen.Generate().ToString();
+            string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
-            SessionStore.Insert(session);
+            SessionStore.Instance.Insert(session);
             DateTime timestamp = DateTime.Now;
             session.LockID = 1;
             SessionStore.LockSession(session);
@@ -113,11 +107,10 @@ namespace SessionStoreTest
         {
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
-            OidGenerator oGen = new OidGenerator();
-            string id = oGen.Generate().ToString();
+            string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
-            SessionStore.Insert(session);
-            SessionStore.EvictSession(session);
+            SessionStore.Instance.Insert(session);
+            SessionStore.Instance.EvictSession(session);
             Session storedSession = SessionStore.Get(id, this.ApplicationName);
             Assert.IsNull(storedSession); 
         }
@@ -125,14 +118,14 @@ namespace SessionStoreTest
         [Test]
         public void AddExpiredSessionAndEvictSoft()
         {
+            var sessionStore = SessionStore.Instance;
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
-            OidGenerator oGen = new OidGenerator();
-            string id = oGen.Generate().ToString();
+            string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
             session.Expires = DateTime.Now.Subtract(new TimeSpan(0,2,0));
-            SessionStore.Insert(session);
-            SessionStore.EvictExpiredSession(session.SessionID,session.ApplicationName);
+            sessionStore.Insert(session);
+            sessionStore.EvictExpiredSession(session.SessionID,session.ApplicationName);
             Session storedSession = SessionStore.Get(session.SessionID, session.ApplicationName);
             Assert.IsNull(storedSession);
         }
@@ -153,35 +146,28 @@ namespace SessionStoreTest
         [Test]
         public void DumpSessions()
         {
-            conn.Open();
-            ICursor allSessions = sessions.FindAll();
-            foreach (Document session in allSessions.Documents)
+            ICursor allSessions;
+            using (var mongo = new Mongo(config))
             {
-                string id = (string)session["SessionId"];
-                DateTime created = (DateTime)session["Created"];
-                created = created.ToLocalTime();
-                DateTime expires = (DateTime)session["Expires"];
-                expires = expires.ToLocalTime();
-                string applicationName = (string)session["ApplicationName"];
-                int sessionItemsCount = (int)session["SessionItemsCount"];
-                int timeout = (int)session["Timeout"];
-                bool locked = (bool)session["Locked"];
-                Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() +" | Timeout:"+ timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
-            }
-            conn.Close();
-        }
-
-        [Test]
-        public void ShowStats()
-        {
-            conn.Open();
-
-            long i = sessions.Count();
-            Console.WriteLine(i.ToString());
-           
-            conn.Close();
+                mongo.Connect();
+                allSessions = mongo["session_store"]["sessions"].FindAll();
+                foreach (Document session in allSessions.Documents)
+                {
+                    string id = (string)session["SessionId"];
+                    DateTime created = (DateTime)session["Created"];
+                    created = created.ToLocalTime();
+                    DateTime expires = (DateTime)session["Expires"];
+                    expires = expires.ToLocalTime();
+                    string applicationName = (string)session["ApplicationName"];
+                    int sessionItemsCount = (int)session["SessionItemsCount"];
+                    int timeout = (int)session["Timeout"];
+                    bool locked = (bool)session["Locked"];
+                    Console.WriteLine("SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() + " | Timeout:" + timeout.ToString() + " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString());
+                }
+            }    
 
         }
+
 
         private byte[] Serialize(SessionStateItemCollection items)
         {
@@ -204,7 +190,6 @@ namespace SessionStoreTest
                 BinaryReader reader = new BinaryReader(ms);
                 sessionItems = SessionStateItemCollection.Deserialize(reader);
             }
-
             return sessionItems;
         }
     }

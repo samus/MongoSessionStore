@@ -8,8 +8,8 @@ using System.Web.Configuration;
 using System.Configuration;
 using System.Configuration.Provider;
 using System.Web.SessionState;
-using MongoDB.Driver;
-using MongoDB.Driver.Configuration;
+using MongoDB;
+using MongoDB.Configuration;
 
 
 namespace MongoSessionStore
@@ -80,15 +80,16 @@ namespace MongoSessionStore
 
                 byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
                 Binary sessionItems = new Binary(serializedItems);
+                var sessionStore = SessionStore.Instance;
 
                 if (newItem)
                 {
                     // Delete an existing expired session if it exists.
-                    SessionStore.EvictExpiredSession(id, _applicationName);
+                    sessionStore.EvictExpiredSession(id, _applicationName);
 
                     // insert new session item.
                     Session session = new Session(id, this._applicationName, item.Timeout, sessionItems, item.Items.Count,0);
-                    SessionStore.Insert(session);
+                    sessionStore.Insert(session);
                 }
                 else
                 {
@@ -170,7 +171,7 @@ namespace MongoSessionStore
                 else if(session.Expires < DateTime.Now)
                 {
                     locked = false;
-                    SessionStore.EvictSession(session);
+                    SessionStore.Instance.EvictSession(session);
 
                 }
                 else if (session.Locked)
@@ -300,9 +301,10 @@ namespace MongoSessionStore
 
         public override void RemoveItem(HttpContext context, string id, object lockId, SessionStateStoreData item)
         {
+            var sessionStore = SessionStore.Instance;
             try
             {
-                SessionStore.EvictSession(id, this._applicationName, lockId);
+                sessionStore.EvictSession(id, this._applicationName, lockId);
             }
             catch (Exception e)
             {
@@ -324,7 +326,7 @@ namespace MongoSessionStore
 
             try
             {
-                SessionStore.Insert(session);
+                SessionStore.Instance.Insert(session);
             }
             catch (Exception e)
             {
