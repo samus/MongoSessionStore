@@ -59,7 +59,7 @@ namespace MongoSessionStore
 
         }
 
-        public static Session Get(string id, string applicationName)
+        public Session Get(string id, string applicationName)
         {
             Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName } };
             Session session;
@@ -92,7 +92,7 @@ namespace MongoSessionStore
             return session;
         }
 
-        public static void UpdateSession(string id, int timeout, Binary sessionItems, string applicationName, int sessionItemsCount, object lockId)
+        public void UpdateSession(string id, int timeout, Binary sessionItems, string applicationName, int sessionItemsCount, object lockId)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace MongoSessionStore
 
         }
 
-        public static void UpdateSessionExpiration(string id, string applicationName, double timeout)
+        public void UpdateSessionExpiration(string id, string applicationName, double timeout)
         {
             try
             {
@@ -183,7 +183,7 @@ namespace MongoSessionStore
             }
         }
 
-        public static void LockSession(Session session)
+        public void LockSession(Session session)
         {
             Document selector = new Document() { { "SessionId", session.SessionID }, { "ApplicationName", session.ApplicationName } };
             Document sessionLock = new Document() { { "$set", new Document() {{"LockDate", DateTime.Now }, 
@@ -203,7 +203,7 @@ namespace MongoSessionStore
 
         }
 
-        public static void ReleaseLock(string id, string applicationName, object lockId, double timeout)
+        public void ReleaseLock(string id, string applicationName, object lockId, double timeout)
         {
             Document selector = new Document() { { "SessionId", id }, { "ApplicationName", applicationName }, { "LockId", lockId } };
             Document sessionLock = new Document() { { "$set", new Document() { { "Expires", DateTime.Now.AddMinutes(timeout) }, { "Locked", false } } } };

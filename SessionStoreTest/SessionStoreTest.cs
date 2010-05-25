@@ -45,6 +45,7 @@ namespace SessionStoreTest
         {
             using (var mongo = new Mongo(config))
             {
+                mongo.Connect();
                 mongo["session_store"]["$cmd"].FindOne(new Document().Add("drop", "sessions"));
             }
         }
@@ -58,7 +59,7 @@ namespace SessionStoreTest
             string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
             sessionStore.Insert(session);
-            Session storedSession = SessionStore.Get(id, this.ApplicationName);
+            Session storedSession = sessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(session.SessionID, storedSession.SessionID);
             Assert.AreEqual(session.ApplicationName, storedSession.ApplicationName);
             Assert.AreEqual(session.SessionItems.Bytes.Length, storedSession.SessionItems.Bytes.Length);
@@ -67,13 +68,14 @@ namespace SessionStoreTest
         [Test]
         public void UpdateSession()
         {
+            var sessionStore = SessionStore.Instance;
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
             string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
             SessionStore.Instance.Insert(session);
-            SessionStore.UpdateSession(id, 5, new Binary(serializedItems), this.ApplicationName, 3, 0);
-            Session updatedSession = SessionStore.Get(id, this.ApplicationName);
+            sessionStore.UpdateSession(id, 5, new Binary(serializedItems), this.ApplicationName, 3, 0);
+            Session updatedSession = sessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(5, updatedSession.Timeout);
             Assert.AreEqual(3, updatedSession.SessionItemsCount);
             Assert.AreEqual(DateTime.Now.AddMinutes(5).Minute, updatedSession.Expires.Minute);
@@ -82,6 +84,7 @@ namespace SessionStoreTest
         [Test]
         public void LockSessionAndReleaseLock()
         {
+            var sessionStore = SessionStore.Instance;
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
             string id = Guid.NewGuid().ToString();
@@ -89,14 +92,14 @@ namespace SessionStoreTest
             SessionStore.Instance.Insert(session);
             DateTime timestamp = DateTime.Now;
             session.LockID = 1;
-            SessionStore.LockSession(session);
-            Session lockedSesssion = SessionStore.Get(id, this.ApplicationName);
+            sessionStore.LockSession(session);
+            Session lockedSesssion = sessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(true, lockedSesssion.Locked);
             Assert.AreEqual(1,session.LockID);
             Assert.AreNotEqual(session.LockDate,lockedSesssion.LockDate);
             Assert.AreEqual(0, lockedSesssion.Flags);
-            SessionStore.ReleaseLock(lockedSesssion.SessionID, lockedSesssion.ApplicationName, lockedSesssion.LockID, item.Timeout);
-            Session unlockedSession = SessionStore.Get(id, this.ApplicationName);
+            sessionStore.ReleaseLock(lockedSesssion.SessionID, lockedSesssion.ApplicationName, lockedSesssion.LockID, item.Timeout);
+            Session unlockedSession = sessionStore.Get(id, this.ApplicationName);
             Assert.AreEqual(false, unlockedSession.Locked);
             Assert.AreEqual(lockedSesssion.LockDate, unlockedSession.LockDate);
             Assert.AreNotEqual(lockedSesssion.Expires, unlockedSession.Expires);
@@ -105,13 +108,14 @@ namespace SessionStoreTest
         [Test]
         public void InsertNewSessionAndEvictHard()
         {
+            var sessionStore = SessionStore.Instance;
             byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
             Binary sessionItems = new Binary(serializedItems);
             string id = Guid.NewGuid().ToString();
             Session session = new Session(id, this.ApplicationName, this.Timeout, sessionItems, item.Items.Count, SessionStateActions.None);
             SessionStore.Instance.Insert(session);
             SessionStore.Instance.EvictSession(session);
-            Session storedSession = SessionStore.Get(id, this.ApplicationName);
+            Session storedSession = sessionStore.Get(id, this.ApplicationName);
             Assert.IsNull(storedSession); 
         }
 
@@ -126,7 +130,7 @@ namespace SessionStoreTest
             session.Expires = DateTime.Now.Subtract(new TimeSpan(0,2,0));
             sessionStore.Insert(session);
             sessionStore.EvictExpiredSession(session.SessionID,session.ApplicationName);
-            Session storedSession = SessionStore.Get(session.SessionID, session.ApplicationName);
+            Session storedSession = sessionStore.Get(session.SessionID, session.ApplicationName);
             Assert.IsNull(storedSession);
         }
 

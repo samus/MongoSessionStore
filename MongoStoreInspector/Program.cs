@@ -46,7 +46,7 @@ namespace MongoStoreInspector
 
                 using (var mongo = new Mongo(config))
                 {
-
+                    mongo.Connect();
                     ICursor allSessions = mongo["session_store"]["sessions"].FindAll();
                     foreach (Document session in allSessions.Documents)
                     {
@@ -59,8 +59,14 @@ namespace MongoStoreInspector
                         int sessionItemsCount = (int)session["SessionItemsCount"];
                         int timeout = (int)session["Timeout"];
                         bool locked = (bool)session["Locked"];
-                        string dump = "SessionId:" + id + " | Created:" + created.ToString() + " | Expires:" + expires.ToString() + " | Timeout:" + timeout.ToString();
-                        dump += " | Locked?: " + locked.ToString() + " | Application:" + applicationName + " | Total Items:" + sessionItemsCount.ToString();
+                        string dump = "SessionId:" + id + 
+                            "\nCreated:" + created.ToString() + 
+                            "\nExpires:" + expires.ToString() + 
+                            "\nTimeout:" + timeout.ToString();
+                        dump += 
+                            "\nLocked?: " + locked.ToString() + 
+                            "\nApplication:" + applicationName + 
+                            "\nTotal Items:" + sessionItemsCount.ToString();
                         Console.WriteLine(dump);
                     }
                 }
@@ -79,6 +85,7 @@ namespace MongoStoreInspector
             {
                 using (var mongo = new Mongo(config))
                 {
+                    mongo.Connect();
                     Document expiredSelector = new Document() { { "Expires", new Document() { { "$lt", DateTime.Now } } } };
                     mongo["session_store"]["sessions"].Delete(expiredSelector);
                 }
@@ -97,6 +104,7 @@ namespace MongoStoreInspector
             {
                 using (var mongo = new Mongo(config))
                 {
+                    mongo.Connect();
                     Document index_spec = new Document() { { "SessionId", 1 }, { "ApplicationName", 1 } };
                     mongo["session_store"]["sessions"].MetaData.CreateIndex(index_spec, false);
                 }

@@ -39,7 +39,8 @@ namespace SessionStoreTest
                 Session session = new Session(id, "AppName", 2, b, items.Count, SessionStateActions.None);
                 using (var mongo = new Mongo(config))
                 {
-                    SessionStore.Instance.Insert(session);
+                    var sessionStore = SessionStore.Instance;
+                    sessionStore.Insert(session);
                     i++;
                 }
 
@@ -57,17 +58,19 @@ namespace SessionStoreTest
             ICursor allSessions;
             using (var mongo = new Mongo(config))
             {
+                mongo.Connect();
                 allSessions = mongo["session_store"]["sessions"].FindAll();
-            }
-            foreach (Document session in allSessions.Documents)
-            {
-                string id = (string)session["SessionId"];
-                ids.Add(id);
+                foreach (Document session in allSessions.Documents)
+                {
+                    string id = (string)session["SessionId"];
+                    ids.Add(id);
 
-            }
+                }
+            }           
             foreach (string s in ids)
             {
-                SessionStore.UpdateSession(s, 2, b, "AppName", items.Count, 0);
+                var sessionStore = SessionStore.Instance;
+                sessionStore.UpdateSession(s, 2, b, "AppName", items.Count, 0);
             }
             
         }

@@ -16,7 +16,7 @@ namespace MongoSessionStore
 {
     public sealed class MongoSessionStoreProvider : SessionStateStoreProviderBase
     {
-        private SessionStateSection sessionStateSection = null; 
+        private SessionStateSection sessionStateSection = null;
         private string eventSource = "MongoSessionStore";
         private string eventLog = "Application";
 
@@ -69,18 +69,18 @@ namespace MongoSessionStore
         }
 
         public override bool SetItemExpireCallback(SessionStateItemExpireCallback expireCallback)
-        {            
+        {
             return false;
         }
 
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item, object lockId, bool newItem)
         {
-           try
+            var sessionStore = SessionStore.Instance;
+            try
             {
 
                 byte[] serializedItems = Serialize((SessionStateItemCollection)item.Items);
                 Binary sessionItems = new Binary(serializedItems);
-                var sessionStore = SessionStore.Instance;
 
                 if (newItem)
                 {
@@ -88,12 +88,12 @@ namespace MongoSessionStore
                     sessionStore.EvictExpiredSession(id, _applicationName);
 
                     // insert new session item.
-                    Session session = new Session(id, this._applicationName, item.Timeout, sessionItems, item.Items.Count,0);
+                    Session session = new Session(id, this._applicationName, item.Timeout, sessionItems, item.Items.Count, 0);
                     sessionStore.Insert(session);
                 }
                 else
                 {
-                    SessionStore.UpdateSession(id, item.Timeout, sessionItems, this._applicationName, item.Items.Count, lockId);
+                    sessionStore.UpdateSession(id, item.Timeout, sessionItems, this._applicationName, item.Items.Count, lockId);
                 }
             }
             catch (Exception e)
@@ -137,12 +137,12 @@ namespace MongoSessionStore
         // is true (in the case of GetItemExclusive), then GetSessionStoreItem
         // locks the record and sets a new LockId and LockDate.
         //
-        private SessionStateStoreData GetSessionStoreItem(bool lockRecord, 
-            HttpContext context, 
-            string id, 
-            out bool locked, 
+        private SessionStateStoreData GetSessionStoreItem(bool lockRecord,
+            HttpContext context,
+            string id,
+            out bool locked,
             out TimeSpan lockAge,
-            out object lockId, 
+            out object lockId,
             out SessionStateActions actionFlags)
         {
             // Initial values for return value and out parameters.
@@ -156,10 +156,10 @@ namespace MongoSessionStore
             byte[] serializedItems = new byte[0];
             // Timeout value from the data store.
             int timeout = 0;
-
+            var sessionStore = SessionStore.Instance;
             try
             {
-                Session session = SessionStore.Get(id, this._applicationName);    
+                Session session = sessionStore.Get(id, this._applicationName);
                 // lockRecord is true when called from GetItemExclusive and
                 // false when called from GetItem.
                 // Obtain a lock if possible. Evict the record if it is expired.
@@ -168,7 +168,7 @@ namespace MongoSessionStore
                     // Not found. The locked value is false.
                     locked = false;
                 }
-                else if(session.Expires < DateTime.Now)
+                else if (session.Expires < DateTime.Now)
                 {
                     locked = false;
                     SessionStore.Instance.EvictSession(session);
@@ -185,29 +185,29 @@ namespace MongoSessionStore
                     locked = false;
                     lockId = session.LockID;
                     actionFlags = (SessionStateActions)session.Flags;
-                    
+
 
                     if (lockRecord)
                     {
                         lockId = (int)lockId + 1;
                         session.LockID = lockId;
-                        session.Flags = 0;  
-                        SessionStore.LockSession(session);
+                        session.Flags = 0;
+                        sessionStore.LockSession(session);
                     }
 
                     if (actionFlags == SessionStateActions.InitializeItem)
                         item = CreateNewStoreData(context, sessionStateSection.Timeout.Minutes);
                     else
                         item = Deserialize(context, session.SessionItems.Bytes, session.Timeout);
-                }            
-                          
+                }
+
             }
             catch (Exception e)
             {
                 if (WriteExceptionsToEventLog)
                 {
                     WriteToEventLog(e, "GetSessionStoreItem");
-                    throw new ProviderException(e.Message,e.InnerException);
+                    throw new ProviderException(e.Message, e.InnerException);
                 }
                 else
                     throw e;
@@ -277,16 +277,17 @@ namespace MongoSessionStore
         //
         public override void ReleaseItemExclusive(HttpContext context, string id, object lockId)
         {
+            var sessionStore = SessionStore.Instance;
             try
             {
-                SessionStore.ReleaseLock(id, this._applicationName, lockId, sessionStateSection.Timeout.TotalMinutes);
+                sessionStore.ReleaseLock(id, this._applicationName, lockId, sessionStateSection.Timeout.TotalMinutes);
             }
             catch (Exception e)
             {
                 if (WriteExceptionsToEventLog)
                 {
                     WriteToEventLog(e, "ReleaseItemExclusive");
-                    throw new ProviderException(e.Message,e.InnerException);
+                    throw new ProviderException(e.Message, e.InnerException);
                 }
                 else
                     throw e;
@@ -311,18 +312,18 @@ namespace MongoSessionStore
                 if (WriteExceptionsToEventLog)
                 {
                     WriteToEventLog(e, "RemoveItem");
-                    throw new ProviderException(e.Message,e.InnerException);
+                    throw new ProviderException(e.Message, e.InnerException);
                 }
                 else
                     throw e;
-            }     
+            }
         }
 
-        public override void CreateUninitializedItem(HttpContext context,string id,int timeout)
+        public override void CreateUninitializedItem(HttpContext context, string id, int timeout)
         {
             byte[] serializedItems = new byte[0];
             Binary sessionItems = new Binary(serializedItems);
-            Session session = new Session(id,this._applicationName, timeout, sessionItems, 0, SessionStateActions.InitializeItem);
+            Session session = new Session(id, this._applicationName, timeout, sessionItems, 0, SessionStateActions.InitializeItem);
 
             try
             {
@@ -333,30 +334,31 @@ namespace MongoSessionStore
                 if (WriteExceptionsToEventLog)
                 {
                     WriteToEventLog(e, "CreateUninitializedItem");
-                    throw new ProviderException(e.Message,e.InnerException);
+                    throw new ProviderException(e.Message, e.InnerException);
                 }
                 else
                     throw e;
             }
         }
 
-        public override SessionStateStoreData CreateNewStoreData(HttpContext context,int timeout)
+        public override SessionStateStoreData CreateNewStoreData(HttpContext context, int timeout)
         {
-            return new SessionStateStoreData(new SessionStateItemCollection(),SessionStateUtility.GetSessionStaticObjects(context),timeout);
+            return new SessionStateStoreData(new SessionStateItemCollection(), SessionStateUtility.GetSessionStaticObjects(context), timeout);
         }
 
         public override void ResetItemTimeout(HttpContext context, string id)
         {
+            var sessionStore = SessionStore.Instance;
             try
             {
-                SessionStore.UpdateSessionExpiration(id,this._applicationName, sessionStateSection.Timeout.TotalMinutes);
+                sessionStore.UpdateSessionExpiration(id, this._applicationName, sessionStateSection.Timeout.TotalMinutes);
             }
             catch (Exception e)
             {
                 if (WriteExceptionsToEventLog)
                 {
                     WriteToEventLog(e, "ResetItemTimeout");
-                    throw new ProviderException(e.Message,e.InnerException);
+                    throw new ProviderException(e.Message, e.InnerException);
                 }
                 else
                     throw e;
