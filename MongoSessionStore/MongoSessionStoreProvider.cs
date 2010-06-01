@@ -154,8 +154,7 @@ namespace MongoSessionStore
 
             // byte array to hold serialized SessionStateItemCollection.
             byte[] serializedItems = new byte[0];
-            // Timeout value from the data store.
-            int timeout = 0;
+            
             var sessionStore = SessionStore.Instance;
             try
             {
@@ -171,7 +170,7 @@ namespace MongoSessionStore
                 else if (session.Expires < DateTime.Now)
                 {
                     locked = false;
-                    SessionStore.Instance.EvictSession(session);
+                    sessionStore.EvictSession(session);
 
                 }
                 else if (session.Locked)
@@ -324,10 +323,10 @@ namespace MongoSessionStore
             byte[] serializedItems = new byte[0];
             Binary sessionItems = new Binary(serializedItems);
             Session session = new Session(id, this._applicationName, timeout, sessionItems, 0, SessionStateActions.InitializeItem);
-
+            var sessionStore = SessionStore.Instance;
             try
             {
-                SessionStore.Instance.Insert(session);
+                sessionStore.Insert(session);
             }
             catch (Exception e)
             {
