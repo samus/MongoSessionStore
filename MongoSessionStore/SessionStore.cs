@@ -26,17 +26,18 @@ namespace MongoSessionStore
         {
             get
             {
-                if (instance == null)
-                {
-                    lock (syncRoot)
-                    {
-                        if (instance == null)
-                            instance = new SessionStore();
-                    }
-                }
-                return instance;
+                return SessionStoreInternal.Instance;
             }
+
         }
+
+        internal class SessionStoreInternal
+        {
+            internal static readonly SessionStore Instance = new SessionStore();
+
+            static SessionStoreInternal() { }
+        }
+
 
 
         public void Insert(Session session)
